@@ -61,4 +61,45 @@ public class AppTest {
 
         assertTrue(response.statusCode() == 400);
     }
+
+    @Test
+    public void addMoviePass() throws IOException, URISyntaxException, InterruptedException {
+
+        // TODO: Ensure that there are no actors with this id
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Parasite Pass\", \"movieId\": \"moviepass\" }"))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("addActorPass: The response status is " + response.statusCode());
+
+        assertTrue(response.statusCode() == 200);
+    }
+
+    // Test for request with missing information
+    @Test
+    public void addMovieFail() throws IOException, URISyntaxException, InterruptedException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request1 = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Parasite Fail 1\", \"movieId\": \"moviefail\" }"))
+                .build();
+
+        HttpRequest request2 = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Parasite Fail 2\", \"movieId\": \"moviefail\" }"))
+                .build();
+
+        client.send(request1, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = client.send(request2, HttpResponse.BodyHandlers.ofString());
+        System.out.println("addMovieFail: The response status is " + response.statusCode());
+
+        assertTrue(response.statusCode() == 400);
+    }
 }

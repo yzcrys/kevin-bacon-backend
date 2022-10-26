@@ -53,15 +53,17 @@ public class ReqHandler implements HttpHandler {
 
         if (endPoint.equals("/api/v1/addActor")) {
             addActor(exchange);
+        } else if (endPoint.equals("/api/v1/addMovie")) {
+            addMovie(exchange);
         } else {
             System.out.println("ReqHandler: handlePut() Error");
             exchange.sendResponseHeaders(404, -1);
         }
     }
 
-    public void addActor(HttpExchange r) throws IOException, JSONException {
+    public void addActor(HttpExchange exchange) throws IOException, JSONException {
 
-        String body = Utils.convert(r.getRequestBody());
+        String body = Utils.convert(exchange.getRequestBody());
         JSONObject obj = new JSONObject(body);
 
         int status = 400;
@@ -73,10 +75,31 @@ public class ReqHandler implements HttpHandler {
             name = obj.getString("name");
             actorId = obj.getString("actorId");
             status = dao.addActor(name, actorId);
-            r.sendResponseHeaders(status, -1);
+            exchange.sendResponseHeaders(status, -1);
 
         } else {
-            r.sendResponseHeaders(status, -1);
+            exchange.sendResponseHeaders(status, -1);
+        }
+    }
+
+    public void addMovie(HttpExchange exchange) throws IOException, JSONException {
+
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = new JSONObject(body);
+
+        int status = 400;
+
+        if (obj.has("name") && obj.has("movieId")) {
+
+            String name, movieId;
+
+            name = obj.getString("name");
+            movieId = obj.getString("movieId");
+            status = dao.addMovie(name, movieId);
+            exchange.sendResponseHeaders(status, -1);
+
+        } else {
+            exchange.sendResponseHeaders(status, -1);
         }
     }
 }
