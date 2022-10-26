@@ -53,4 +53,37 @@ public class Neo4jDAO {
             return 500;
         }
     }
+
+    public boolean movieExists(String movieId) {
+        try(Session session = driver.session()){
+            Transaction tx = session.beginTransaction();
+            String query = "MATCH (n: Movie) WHERE n.movieId = '%s' RETURN n".formatted(movieId);
+            Result res = tx.run(query);
+            Boolean exists = res.hasNext();
+            tx.commit();
+            return exists;
+        }
+    }
+
+    public int addMovie(String name, String movieId) {
+        try(Session session = driver.session()){
+            Transaction tx = session.beginTransaction();
+
+            if(movieExists(movieId)) {
+                System.out.println("Neo4jDAO: addMovie(): Movie " + name + " already exists");
+                return 400;
+            }
+            else {
+                System.out.println("Neo4jDAO: addMovie(): Adding movie " + name);
+                String query = "CREATE (n: Movie {name:'%s', movieId:'%s'})".formatted(name, movieId);
+                tx.run(query);
+                tx.commit();
+                return 200;
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            return 500;
+        }
+    }
 }
