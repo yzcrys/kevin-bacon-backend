@@ -102,4 +102,68 @@ public class AppTest {
 
         assertTrue(response.statusCode() == 400);
     }
+
+    @Test
+    public void addRelationshipPass() throws IOException, URISyntaxException, InterruptedException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requestAddActor = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addActor"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor Relationship Pass\", \"actorId\": \"arp\" }"))
+                .build();
+
+        HttpRequest requestAddMovie = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Movie Relationship Pass\", \"movieId\": \"mrp\" }"))
+                .build();
+
+        HttpRequest requestAddRelationship = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addRelationship"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"arp\", \"movieId\": \"mrp\" }"))
+                .build();
+
+        client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddMovie, HttpResponse.BodyHandlers.ofString());
+
+        HttpResponse<String> response = client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
+        System.out.println("addRelationshipPass: The response status is " + response.statusCode());
+
+        assertTrue(response.statusCode() == 200);
+    }
+
+    @Test
+    public void addRelationshipFail() throws IOException, URISyntaxException, InterruptedException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requestAddActor = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addActor"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor Relationship Fail\", \"actorId\": \"arf\" }"))
+                .build();
+
+        HttpRequest requestAddMovie = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Movie Relationship Fail\", \"movieId\": \"mrf\" }"))
+                .build();
+
+        HttpRequest requestAddRelationship = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addRelationship"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"arf\", \"movieId\": \"mrf\" }"))
+                .build();
+
+        HttpRequest requestAddDuplicateRelationship = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addRelationship"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"arf\", \"movieId\": \"mrf\" }"))
+                .build();
+
+        client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddMovie, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
+
+        HttpResponse<String> response = client.send(requestAddDuplicateRelationship, HttpResponse.BodyHandlers.ofString());
+        System.out.println("addRelationshipFail: The response status is " + response.statusCode());
+
+        assertTrue(response.statusCode() == 400);
+    }
 }

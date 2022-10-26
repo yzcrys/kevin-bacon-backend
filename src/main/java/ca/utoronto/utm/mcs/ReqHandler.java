@@ -55,6 +55,8 @@ public class ReqHandler implements HttpHandler {
             addActor(exchange);
         } else if (endPoint.equals("/api/v1/addMovie")) {
             addMovie(exchange);
+        } else if (endPoint.equals("/api/v1/addRelationship")) {
+            addRelationship(exchange);
         } else {
             System.out.println("ReqHandler: handlePut() Error");
             exchange.sendResponseHeaders(404, -1);
@@ -96,6 +98,27 @@ public class ReqHandler implements HttpHandler {
             name = obj.getString("name");
             movieId = obj.getString("movieId");
             status = dao.addMovie(name, movieId);
+            exchange.sendResponseHeaders(status, -1);
+
+        } else {
+            exchange.sendResponseHeaders(status, -1);
+        }
+    }
+
+    public void addRelationship(HttpExchange exchange) throws IOException, JSONException {
+
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = new JSONObject(body);
+
+        int status = 400;
+
+        if (obj.has("actorId") && obj.has("movieId")) {
+
+            String actorId, movieId;
+
+            actorId = obj.getString("actorId");
+            movieId = obj.getString("movieId");
+            status = dao.addRelationship(actorId, movieId);
             exchange.sendResponseHeaders(status, -1);
 
         } else {
