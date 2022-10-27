@@ -1,6 +1,8 @@
 package ca.utoronto.utm.mcs;
 
 import java.io.IOException;
+import java.io.OutputStream;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.json.JSONException;
@@ -31,7 +33,7 @@ public class ReqHandler implements HttpHandler {
                 handleGet(exchange);
             } else {
                 System.out.println("ReqHandler: handle() Error");
-                exchange.sendResponseHeaders(400, -1);
+                exchange.sendResponseHeaders(500, -1);
             }
 
         } catch (Exception e) {
@@ -43,8 +45,12 @@ public class ReqHandler implements HttpHandler {
 
         String endPoint = exchange.getRequestURI().toString();
 
-        System.out.println("ReqHandler: handleGet() Error - NOT IMPLEMENTED");
-        exchange.sendResponseHeaders(404, -1);
+        if (endPoint.equals("/api/v1/getActor")) {
+            getActor(exchange);
+        } else {
+            System.out.println("ReqHandler: handleGet() Error");
+            exchange.sendResponseHeaders(500, -1);
+        }
     }
 
     public void handlePut(HttpExchange exchange) throws IOException, JSONException {
@@ -65,12 +71,20 @@ public class ReqHandler implements HttpHandler {
 
     public void addActor(HttpExchange exchange) throws IOException, JSONException {
 
-        String body = Utils.convert(exchange.getRequestBody());
-        JSONObject obj = new JSONObject(body);
-
         int status = 400;
 
-        if (obj.has("name") && obj.has("actorId")) {
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = null;
+
+        try {
+            obj = new JSONObject(body);
+        }
+        catch (JSONException e)
+        {
+            status = 500;
+        }
+
+        if (obj != null && obj.has("name") && obj.has("actorId")) {
 
             String name, actorId;
 
@@ -86,12 +100,20 @@ public class ReqHandler implements HttpHandler {
 
     public void addMovie(HttpExchange exchange) throws IOException, JSONException {
 
-        String body = Utils.convert(exchange.getRequestBody());
-        JSONObject obj = new JSONObject(body);
-
         int status = 400;
 
-        if (obj.has("name") && obj.has("movieId")) {
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = null;
+
+        try {
+            obj = new JSONObject(body);
+        }
+        catch (JSONException e)
+        {
+            status = 500;
+        }
+
+        if (obj != null && obj.has("name") && obj.has("movieId")) {
 
             String name, movieId;
 
@@ -107,12 +129,20 @@ public class ReqHandler implements HttpHandler {
 
     public void addRelationship(HttpExchange exchange) throws IOException, JSONException {
 
-        String body = Utils.convert(exchange.getRequestBody());
-        JSONObject obj = new JSONObject(body);
-
         int status = 400;
 
-        if (obj.has("actorId") && obj.has("movieId")) {
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = null;
+
+        try {
+            obj = new JSONObject(body);
+        }
+        catch (JSONException e)
+        {
+            status = 500;
+        }
+
+        if (obj != null && obj.has("actorId") && obj.has("movieId")) {
 
             String actorId, movieId;
 
@@ -121,6 +151,44 @@ public class ReqHandler implements HttpHandler {
             status = dao.addRelationship(actorId, movieId);
             exchange.sendResponseHeaders(status, -1);
 
+        } else {
+            exchange.sendResponseHeaders(status, -1);
+        }
+    }
+
+    public void getActor(HttpExchange exchange) throws IOException, JSONException {
+
+        int status = 400;
+
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = null;
+
+        try {
+            obj = new JSONObject(body);
+        }
+        catch (JSONException e)
+        {
+            status = 500;
+        }
+
+        if (obj != null && obj.has("actorId")) {
+
+            String actorId;
+            String actor;
+
+            actorId = obj.getString("actorId");
+            actor = dao.getActor(actorId);
+
+            if (actor.length() == 3)
+                status = Integer.parseInt(actor);
+            else
+                status = 200;
+
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(status, actor.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(actor.getBytes());
+            os.close();
         } else {
             exchange.sendResponseHeaders(status, -1);
         }

@@ -113,8 +113,7 @@ public class Neo4jDAO {
             else {
                 System.out.println("Neo4jDAO: addMovie(): Adding relationship " + actorId + " ACTED_IN " + movieId);
                 String query = ("MATCH (a:actor), (b:movie) WHERE a.actorId = '%s' AND b.movieId = '%s'" +
-                        " CREATE (a)-[r:ACTED_IN]->(b)" +
-                        " SET a.movies = [(a)-->(c:movie) | c.movieId]").formatted(actorId, movieId);
+                        " CREATE (a)-[r:ACTED_IN]->(b)").formatted(actorId, movieId);
                 tx.run(query);
                 tx.commit();
                 return 200;
@@ -123,6 +122,38 @@ public class Neo4jDAO {
         catch(Exception e) {
             e.printStackTrace();
             return 500;
+        }
+    }
+
+    public String getActor(String actorId) {
+        String actor = "null";
+
+        try(Session session = driver.session()){
+            Transaction tx = session.beginTransaction();
+
+            if (!actorExists(actorId)) {
+                System.out.println("Neo4jDAO: getActor():  " + actorId + "does not exist");
+                return "404";
+            }
+            else {
+                System.out.println("Neo4jDAO: getActor(): Getting actor with id " + actorId);
+                String query = ("MATCH (n:actor {actorId: '%s'})" +
+                        " RETURN collect({actorId: n.actorId, name: n.name, movies: [(n)-->(m:movie) | m.movieId]}) AS obj").formatted(actorId);
+
+                Result res = tx.run(query);
+
+                if (res.hasNext()) {
+                    org.neo4j.driver.Record record = res.next();
+                    actor= record.values().get(0).get(0).toString();
+                }
+
+                tx.commit();
+                return actor;
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            return "500";
         }
     }
 }
