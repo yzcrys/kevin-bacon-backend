@@ -3,14 +3,17 @@ package ca.utoronto.utm.mcs;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 // TODO Please Write Your Tests For CI/CD In This Class. You will see
 // these tests pass/fail on github under github actions.
@@ -165,5 +168,72 @@ public class AppTest {
         System.out.println("addRelationshipFail: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 400);
+    }
+
+    @Test
+    public void getActorPass() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requestAddActor = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addActor"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor GetActor Pass\", \"actorId\": \"agp\" }"))
+                .build();
+
+        HttpRequest requestAddMovie = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Movie GetActor Pass\", \"movieId\": \"mgp\" }"))
+                .build();
+
+        HttpRequest requestAddRelationship = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addRelationship"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"agp\", \"movieId\": \"mgp\" }"))
+                .build();
+
+        HttpRequest requestGetActor = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/getActor"))
+                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"agp\" }"))
+                .build();
+
+        client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddMovie, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
+
+        HttpResponse<String> response = client.send(requestGetActor, HttpResponse.BodyHandlers.ofString());
+        System.out.println("getActorPass: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+
+        if (obj == null || !obj.has("actorId") | !obj.has("name") || !obj.has("movies"))
+            correctBody = false;
+        else if (obj.getString("actorId").equals("agp") && obj.getString("name").equals("Actor GetActor Pass") && obj.getJSONArray("movies").toString().equals("[\"mgp\"]"))
+            correctBody = true;
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
+    @Test
+    public void getActorFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requestGetActor = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/getActor"))
+                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"agp\" }"))
+                .build();
+
+        HttpResponse<String> response = client.send(requestGetActor, HttpResponse.BodyHandlers.ofString());
+        System.out.println("getActorPass: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        assertTrue(response.statusCode() == 404);
     }
 }
