@@ -47,12 +47,12 @@ public class AppTest {
         HttpClient client = HttpClient.newHttpClient();
         HttpResponse<String> response = sendPutReq(client, "addActor", "{ \"name\": \"John Pass\", \"actorId\": \"actorpass\" }");
 
-        System.out.println("addActorPass: The response status is " + response.statusCode());
+//        System.out.println("addActorPass: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 200);
     }
 
-    // Test for request with missing information
+    // Test for duplicate actor, invalid format, no response body (Response status 400, 400)
     @Test
     public void addActorFail() throws JSONException, IOException, URISyntaxException, InterruptedException {
 
@@ -60,9 +60,11 @@ public class AppTest {
         sendPutReq(client, "addActor", "{ \"name\": \"John Fail 1\", \"actorId\": \"actorfail\" }");
         HttpResponse<String> response = sendPutReq(client,"addActor", "{ \"name\": \"John Fail 2\", \"actorId\": \"actorfail\" }");
 
-        System.out.println("addActorFail: The response status is " + response.statusCode());
+        HttpResponse<String> response2 = sendPutReq(client, "addActor", "{ \"name\": \"John Fail 1\" }");
 
-        assertTrue(response.statusCode() == 400);
+//        System.out.println("addActorFail: The response status is " + response.statusCode());
+
+        assertTrue(response.statusCode() == 400 && response2.statusCode() == 400 && response.body().isEmpty() && response2.body().isEmpty());
     }
 
     @Test
@@ -71,12 +73,12 @@ public class AppTest {
         HttpClient client = HttpClient.newHttpClient();
         HttpResponse<String> response = sendPutReq(client, "addMovie", "{ \"name\": \"Parasite Pass\", \"movieId\": \"moviepass\" }");
 
-        System.out.println("addActorPass: The response status is " + response.statusCode());
+//        System.out.println("addMoviePass: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 200);
     }
 
-    // Test for request with missing information
+    // Test for duplicate movie, invalid format, no response body (Response status 400, 400)
     @Test
     public void addMovieFail() throws IOException, URISyntaxException, InterruptedException {
 
@@ -84,11 +86,14 @@ public class AppTest {
         sendPutReq(client, "addMovie", "{ \"name\": \"Parasite Fail 1\", \"movieId\": \"moviefail\" }");
 
         HttpResponse<String> response = sendPutReq(client, "addMovie", "{ \"name\": \"Parasite Fail 2\", \"movieId\": \"moviefail\" }");
-        System.out.println("addMovieFail: The response status is " + response.statusCode());
+        HttpResponse<String> response2 = sendPutReq(client, "addMovie", "{ \"name\": \"Parasite Fail 2\" } ");
 
-        assertTrue(response.statusCode() == 400);
+//        System.out.println();
+
+        assertTrue(response.statusCode() == 400 && response2.statusCode() == 400 && response.body().isEmpty() && response2.body().isEmpty());
     }
 
+    // realtionship check
     @Test
     public void addRelationshipPass() throws IOException, URISyntaxException, InterruptedException {
 
@@ -113,11 +118,12 @@ public class AppTest {
         client.send(requestAddMovie, HttpResponse.BodyHandlers.ofString());
 
         HttpResponse<String> response = client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
-        System.out.println("addRelationshipPass: The response status is " + response.statusCode());
+//        System.out.println("addRelationshipPass: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 200);
     }
 
+    // Test for duplicate relationship (Response status 400)
     @Test
     public void addRelationshipFail() throws IOException, URISyntaxException, InterruptedException {
 
@@ -148,7 +154,7 @@ public class AppTest {
         client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
 
         HttpResponse<String> response = client.send(requestAddDuplicateRelationship, HttpResponse.BodyHandlers.ofString());
-        System.out.println("addRelationshipFail: The response status is " + response.statusCode());
+//        System.out.println("addRelationshipFail: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 400);
     }
@@ -183,7 +189,7 @@ public class AppTest {
         client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
 
         HttpResponse<String> response = client.send(requestGetActor, HttpResponse.BodyHandlers.ofString());
-        System.out.println("getActorPass: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("getActorPass: The response status is " + response.statusCode() + " with response body " + response.body());
 
         JSONObject obj = null;
         try {
@@ -204,6 +210,7 @@ public class AppTest {
         assertTrue(response.statusCode() == 200 && correctBody);
     }
 
+    // Test for actor does not exist and no response body (Response status 404)
     @Test
     public void getActorFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
 
@@ -215,9 +222,9 @@ public class AppTest {
                 .build();
 
         HttpResponse<String> response = client.send(requestGetActor, HttpResponse.BodyHandlers.ofString());
-        System.out.println("getActorFail: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("getActorFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
-        assertTrue(response.statusCode() == 404);
+        assertTrue(response.statusCode() == 404 && response.body().isEmpty());
     }
 
     @Test
@@ -250,7 +257,7 @@ public class AppTest {
         client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
 
         HttpResponse<String> response = client.send(requestGetMovie, HttpResponse.BodyHandlers.ofString());
-        System.out.println("getMoviePass: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("getMoviePass: The response status is " + response.statusCode() + " with response body " + response.body());
 
         JSONObject obj = null;
         try {
@@ -271,15 +278,16 @@ public class AppTest {
         assertTrue(response.statusCode() == 200 && correctBody);
     }
 
+    // Test for movie does not exist and no response body(Response status 404)
     @Test
     public void getMovieFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
 
         HttpClient client = HttpClient.newHttpClient();
 
         HttpResponse<String> response = sendGetReq(client, "getMovie", "{ \"movieId\": \"mmf\" }");
-        System.out.println("getMovieFail: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("getMovieFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
-        assertTrue(response.statusCode() == 404);
+        assertTrue(response.statusCode() == 404 && response.body().isEmpty());
     }
 
     @Test
@@ -291,7 +299,7 @@ public class AppTest {
         sendPutReq(client, "addRelationship", "{ \"actorId\": \"ahrp\", \"movieId\": \"mhrp\" }");
 
         HttpResponse<String> response = sendGetReq(client, "hasRelationship", "{ \"actorId\": \"ahrp\", \"movieId\": \"mhrp\" }");
-        System.out.println("hasRelationshipPass: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("hasRelationshipPass: The response status is " + response.statusCode() + " with response body " + response.body());
 
         JSONObject obj = null;
         try {
@@ -312,6 +320,7 @@ public class AppTest {
         assertTrue(response.statusCode() == 200 && correctBody);
     }
 
+    // Test for actor or movie does not exist and no response body (Response status 404)
     @Test
     public void hasRelationshipFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
 
@@ -319,9 +328,9 @@ public class AppTest {
         sendPutReq(client, "addActor", "{ \"name\": \"Actor HasRelationship Pass\", \"actorId\": \"ahrf\" }");
 
         HttpResponse<String> response = sendGetReq(client, "hasRelationship", "{ \"actorId\": \"ahrf\", \"movieId\": \"mhrf\" }");
-        System.out.println("hasRelationshipFail: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("hasRelationshipFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
-        assertTrue(response.statusCode() == 404);
+        assertTrue(response.statusCode() == 404 && response.body().isEmpty());
     }
 
     @Test
@@ -349,7 +358,7 @@ public class AppTest {
         sendPutReq(client, "addRelationship", "{ \"actorId\": \"nm0000102\", \"movieId\": \"mcbnp3\" }");
 
         HttpResponse<String> response = sendGetReq(client, "computeBaconNumber", "{ \"actorId\": \"acbnp1\" }");
-        System.out.println("computeBaconNumberPass: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("computeBaconNumberPass: The response status is " + response.statusCode() + " with response body " + response.body());
 
         JSONObject obj = null;
         try {
@@ -370,6 +379,7 @@ public class AppTest {
         assertTrue(response.statusCode() == 200 && correctBody);
     }
 
+    // Test for actor exists, path does not exist, no response body (Response status 404)
     @Test
     public void computeBaconNumberFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
 
@@ -379,9 +389,9 @@ public class AppTest {
         sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Fail\", \"actorId\": \"acbnf1\" }");
 
         HttpResponse<String> response = sendGetReq(client, "computeBaconNumber", "{ \"actorId\": \"acbnf1\" }");
-        System.out.println("computeBaconNumberFail: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("computeBaconNumberFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
-        assertTrue(response.statusCode() == 404);
+        assertTrue(response.statusCode() == 404 && response.body().isEmpty());
     }
 
     @Test
@@ -409,7 +419,7 @@ public class AppTest {
         sendPutReq(client, "addRelationship", "{ \"actorId\": \"nm0000102\", \"movieId\": \"mcbpp3\" }");
 
         HttpResponse<String> response = sendGetReq(client, "computeBaconPath", "{ \"actorId\": \"acbpp1\" }");
-        System.out.println("computeBaconPathPass: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("computeBaconPathPass: The response status is " + response.statusCode() + " with response body " + response.body());
 
         JSONObject obj = null;
         try {
@@ -432,6 +442,7 @@ public class AppTest {
         assertTrue(response.statusCode() == 200 && correctBody);
     }
 
+    // Test for actor does not exist and no response body (Response status 404)
     @Test
     public void computeBaconPathFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
 
@@ -441,8 +452,124 @@ public class AppTest {
         sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Fail\", \"actorId\": \"acbpf1\" }");
 
         HttpResponse<String> response = sendGetReq(client, "computeBaconNumber", "{ \"actorId\": \"acbpf1\" }");
-        System.out.println("computeBaconPathFail: The response status is " + response.statusCode() + " with response body " + response.body());
+//        System.out.println("computeBaconPathFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
-        assertTrue(response.statusCode() == 404);
+        assertTrue(response.statusCode() == 404 && response.body().isEmpty());
     }
+
+    // ********** EDGE CASES TESTS **********
+
+    //  actor with no movies (200, empty list of movies)
+    @Test
+    public void getActorNoMovies() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+        sendPutReq(client, "addActor", "{ \"name\": \"Bad Actor\", \"actorId\": \"badactor\" }");
+        HttpResponse<String> response = sendGetReq(client, "getActor", "{ \"actorId\": \"badactor\" }");
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+
+        if (obj == null || !obj.has("actorId") | !obj.has("name") || !obj.has("movies"))
+            correctBody = false;
+        else if (obj.getString("actorId").equals("badactor") && obj.getString("name").equals("Bad Actor") && obj.getJSONArray("movies").toString().equals("[]"))
+            correctBody = true;
+
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
+    //  movie with no actors (200, empty list of actors)
+    @Test
+    public void getMovieNoActors() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+        sendPutReq(client, "addMovie", "{ \"name\": \"Bad Movie\", \"movieId\": \"badmovie\" }");
+        HttpResponse<String> response = sendGetReq(client, "getMovie", "{ \"movieId\": \"badmovie\" }");
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+
+        if (obj == null || !obj.has("movieId") | !obj.has("name") || !obj.has("actors"))
+            correctBody = false;
+        else if (obj.getString("movieId").equals("badmovie") && obj.getString("name").equals("Bad Movie") && obj.getJSONArray("actors").toString().equals("[]"))
+            correctBody = true;
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
+    //  compute Kevin Bacon's bacon number (200, baconNumber : 0)
+    @Test
+    public void computeBaconNumberKevinBacon() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        sendPutReq(client, "addActor", "{ \"name\": \"Kevin Bacon\", \"actorId\": \"nm0000102\" }");
+
+        HttpResponse<String> response = sendGetReq(client, "computeBaconNumber", "{ \"actorId\": \"nm0000102\" }");
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+
+        if (obj == null || !obj.has("baconNumber"))
+            correctBody = false;
+        else if (obj.getInt("baconNumber") == 0)
+            correctBody = true;
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
+    //  compute Kevin Bacon's bacon path (200, baconPath: ["nm0000102"])
+    @Test
+    public void computeBaconPathKevinBacon() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        sendPutReq(client, "addActor", "{ \"name\": \"Kevin Bacon\", \"actorId\": \"nm0000102\" }");
+
+        HttpResponse<String> response = sendGetReq(client, "computeBaconPath", "{ \"actorId\": \"nm0000102\" }");
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+
+        if (obj == null || !obj.has("baconPath"))
+            correctBody = false;
+        else if (obj.get("baconPath").toString() == "[\"nm0000102\"]");
+            correctBody = true;
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
 }

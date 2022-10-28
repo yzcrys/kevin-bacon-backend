@@ -30,13 +30,13 @@ public class Server {
     }
 
     /**
-     * This method binds the server to the hostname <code>0.0.0.0</code> and the given port.
+     * This method binds the server to <code>localhost</code> and the given port.
      * @param port The port on to start the server on
      * @throws IOException
      * @see App#main(String[]) <code>main(String[])</code> in <code>App</code> for example usage
      */
     public void bind(int port) throws IOException {
-        this.server.bind(new InetSocketAddress("0.0.0.0", port), 0);
+        this.server.bind(new InetSocketAddress("localhost", port), 0);
     }
 
     /**

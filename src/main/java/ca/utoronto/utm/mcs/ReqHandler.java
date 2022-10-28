@@ -44,12 +44,13 @@ public class ReqHandler implements HttpHandler {
             } else if (request.equals("GET")) {
                 handleGet(exchange);
             } else {
-                System.out.println("ReqHandler: handle() Error");
-                exchange.sendResponseHeaders(500, -1);
+//                System.out.println("ReqHandler: handle() Error");
+                exchange.sendResponseHeaders(404, -1);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+            exchange.sendResponseHeaders(500, -1);
         }
     }
 
@@ -71,8 +72,8 @@ public class ReqHandler implements HttpHandler {
             case "/api/v1/computeBaconNumber" -> computeBaconNumber(exchange);
             case "/api/v1/computeBaconPath" -> computeBaconPath(exchange);
             default -> {
-                System.out.println("ReqHandler: handleGet() Error");
-                exchange.sendResponseHeaders(500, -1);
+//                System.out.println("ReqHandler: handleGet() Error");
+                exchange.sendResponseHeaders(404, -1);
             }
         }
     }
@@ -93,7 +94,7 @@ public class ReqHandler implements HttpHandler {
             case "/api/v1/addMovie" -> addMovie(exchange);
             case "/api/v1/addRelationship" -> addRelationship(exchange);
             default -> {
-                System.out.println("ReqHandler: handlePut() Error");
+//                System.out.println("ReqHandler: handlePut() Error");
                 exchange.sendResponseHeaders(404, -1);
             }
         }
@@ -124,7 +125,7 @@ public class ReqHandler implements HttpHandler {
             status = 500;
         }
 
-        if (obj != null && obj.has("name") && obj.has("actorId")) {
+        if (obj != null && obj.has("name") && obj.has("actorId") && !obj.getString("name").isEmpty() && !obj.getString("actorId").isEmpty()) {
 
             String name, actorId;
 
@@ -163,7 +164,7 @@ public class ReqHandler implements HttpHandler {
             status = 500;
         }
 
-        if (obj != null && obj.has("name") && obj.has("movieId")) {
+        if (obj != null && obj.has("name") && obj.has("movieId") && !obj.getString("name").isEmpty() && !obj.getString("movieId").isEmpty()) {
 
             String name, movieId;
 
@@ -202,7 +203,7 @@ public class ReqHandler implements HttpHandler {
             status = 500;
         }
 
-        if (obj != null && obj.has("actorId") && obj.has("movieId")) {
+        if (obj != null && obj.has("actorId") && obj.has("movieId") && !obj.getString("movieId").isEmpty() && !obj.getString("actorId").isEmpty()) {
 
             String actorId, movieId;
 
@@ -241,7 +242,7 @@ public class ReqHandler implements HttpHandler {
             status = 500;
         }
 
-        if (obj != null && obj.has("actorId")) {
+        if (obj != null && obj.has("actorId") && !obj.getString("actorId").isEmpty()) {
 
             String actorId;
             String res;
@@ -291,7 +292,7 @@ public class ReqHandler implements HttpHandler {
             status = 500;
         }
 
-        if (obj != null && obj.has("movieId")) {
+        if (obj != null && obj.has("movieId") && !obj.getString("movieId").isEmpty()) {
 
             String movieId;
             String res;
@@ -341,7 +342,7 @@ public class ReqHandler implements HttpHandler {
             status = 500;
         }
 
-        if (obj != null && obj.has("actorId") && obj.has("movieId")) {
+        if (obj != null && obj.has("actorId") && obj.has("movieId") && !obj.getString("movieId").isEmpty() && !obj.getString("actorId").isEmpty()) {
 
             String actorId, movieId;
             String res;
@@ -392,7 +393,7 @@ public class ReqHandler implements HttpHandler {
             status = 500;
         }
 
-        if (obj != null && obj.has("actorId")) {
+        if (obj != null && obj.has("actorId") && !obj.getString("actorId").isEmpty()) {
 
             String actorId;
             String res;
@@ -443,7 +444,7 @@ public class ReqHandler implements HttpHandler {
             status = 500;
         }
 
-        if (obj != null && obj.has("actorId")) {
+        if (obj != null && obj.has("actorId") && !obj.getString("actorId").isEmpty()) {
 
             String actorId;
             String res;
