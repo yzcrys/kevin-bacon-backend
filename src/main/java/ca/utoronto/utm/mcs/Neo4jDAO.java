@@ -190,7 +190,7 @@ public class Neo4jDAO {
     }
 
     public String hasRelationship(String actorId, String movieId) {
-        String obj = "null";
+        String obj = "";
 
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -213,6 +213,47 @@ public class Neo4jDAO {
                 }
 
                 obj = obj.replace("TRUE", "true").replace("FALSE", "false");
+
+                tx.commit();
+                return obj;
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            return "500";
+        }
+    }
+
+    public String computeBaconNumber(String actorId) {
+        String kevinBaconId = "nm0000102";
+        String obj = "";
+
+        try(Session session = driver.session()){
+            Transaction tx = session.beginTransaction();
+
+            if (!actorExists(kevinBaconId) || !actorExists(actorId)) {
+                System.out.println("Neo4jDAO: computeBaconNumber():  Kevin Bacon or " + actorId + " does not exist");
+                return "404";
+            }
+            else if (actorId.equals(kevinBaconId)) {
+                return new JSONObject().put("baconNumber", 0).toString();
+            }
+            else {
+                System.out.println("Neo4jDAO: computeBaconNumber(): Computing bacon number for " + actorId);
+                String query = ("MATCH (a:actor {actorId: '%s'} ), (b:actor {actorId: '%s'}),\n" +
+                                    "p = shortestPath((a)-[:ACTED_IN*]-(b))\n" +
+                                    "WITH (length(p) / 2) as baconNumber\n" +
+                                    "RETURN collect({ baconNumber: baconNumber })").formatted(kevinBaconId, actorId);
+                Result res = tx.run(query);
+
+                if (res.hasNext()) {
+                    org.neo4j.driver.Record record = res.next();
+                    obj = record.values().get(0).get(0).toString();
+                    if (obj == "NULL") {
+                        System.out.println("Neo4jDAO: computeBaconNumber():  There is no path from Kevin Bacon to " + actorId);
+                        obj = "404";
+                    }
+                }
 
                 tx.commit();
                 return obj;
