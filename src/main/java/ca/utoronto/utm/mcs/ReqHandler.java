@@ -45,15 +45,15 @@ public class ReqHandler implements HttpHandler {
 
         String endPoint = exchange.getRequestURI().toString();
 
-        if (endPoint.equals("/api/v1/getActor")) {
-            getActor(exchange);
-        } else if (endPoint.equals("/api/v1/getMovie")) {
-            getMovie(exchange);
-        } else if (endPoint.equals("/api/v1/hasRelationship")) {
-            hasRelationship(exchange);
-        } else {
-            System.out.println("ReqHandler: handleGet() Error");
-            exchange.sendResponseHeaders(500, -1);
+        switch (endPoint) {
+            case "/api/v1/getActor" -> getActor(exchange);
+            case "/api/v1/getMovie" -> getMovie(exchange);
+            case "/api/v1/hasRelationship" -> hasRelationship(exchange);
+            case "/api/v1/computeBaconNumber" -> computeBaconNumber(exchange);
+            default -> {
+                System.out.println("ReqHandler: handleGet() Error");
+                exchange.sendResponseHeaders(500, -1);
+            }
         }
     }
 
@@ -61,15 +61,14 @@ public class ReqHandler implements HttpHandler {
 
         String endPoint = exchange.getRequestURI().toString();
 
-        if (endPoint.equals("/api/v1/addActor")) {
-            addActor(exchange);
-        } else if (endPoint.equals("/api/v1/addMovie")) {
-            addMovie(exchange);
-        } else if (endPoint.equals("/api/v1/addRelationship")) {
-            addRelationship(exchange);
-        } else {
-            System.out.println("ReqHandler: handlePut() Error");
-            exchange.sendResponseHeaders(404, -1);
+        switch (endPoint) {
+            case "/api/v1/addActor" -> addActor(exchange);
+            case "/api/v1/addMovie" -> addMovie(exchange);
+            case "/api/v1/addRelationship" -> addRelationship(exchange);
+            default -> {
+                System.out.println("ReqHandler: handlePut() Error");
+                exchange.sendResponseHeaders(404, -1);
+            }
         }
     }
 
@@ -178,21 +177,23 @@ public class ReqHandler implements HttpHandler {
         if (obj != null && obj.has("actorId")) {
 
             String actorId;
-            String actor;
+            String res;
 
             actorId = obj.getString("actorId");
-            actor = dao.getActor(actorId);
+            res = dao.getActor(actorId);
 
-            if (actor.length() == 3)
-                status = Integer.parseInt(actor);
-            else
+            if (res.length() == 3) {
+                status = Integer.parseInt(res);
+                exchange.sendResponseHeaders(status, -1);
+            }
+            else {
                 status = 200;
-
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(status, actor.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(actor.getBytes());
-            os.close();
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(status, res.length());
+                OutputStream os = exchange.getResponseBody();
+                os.write(res.getBytes());
+                os.close();
+            }
         } else {
             exchange.sendResponseHeaders(status, -1);
         }
@@ -216,21 +217,23 @@ public class ReqHandler implements HttpHandler {
         if (obj != null && obj.has("movieId")) {
 
             String movieId;
-            String movie;
+            String res;
 
             movieId = obj.getString("movieId");
-            movie = dao.getMovie(movieId);
+            res = dao.getMovie(movieId);
 
-            if (movie.length() == 3)
-                status = Integer.parseInt(movie);
-            else
+            if (res.length() == 3) {
+                status = Integer.parseInt(res);
+                exchange.sendResponseHeaders(status, -1);
+            }
+            else {
                 status = 200;
-
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(status, movie.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(movie.getBytes());
-            os.close();
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(status, res.length());
+                OutputStream os = exchange.getResponseBody();
+                os.write(res.getBytes());
+                os.close();
+            }
         } else {
             exchange.sendResponseHeaders(status, -1);
         }
@@ -260,16 +263,59 @@ public class ReqHandler implements HttpHandler {
             movieId = obj.getString("movieId");
             res = dao.hasRelationship(actorId, movieId);
 
-            if (res.length() == 3)
+            if (res.length() == 3) {
                 status = Integer.parseInt(res);
-            else
+                exchange.sendResponseHeaders(status, -1);
+            }
+            else {
                 status = 200;
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(status, res.length());
+                OutputStream os = exchange.getResponseBody();
+                os.write(res.getBytes());
+                os.close();
+            }
+        } else {
+            exchange.sendResponseHeaders(status, -1);
+        }
+    }
 
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(status, res.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(res.getBytes());
-            os.close();
+    public void computeBaconNumber(HttpExchange exchange) throws IOException, JSONException {
+
+        int status = 400;
+
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = null;
+
+        try {
+            obj = new JSONObject(body);
+        }
+        catch (JSONException e)
+        {
+            status = 500;
+        }
+
+        if (obj != null && obj.has("actorId")) {
+
+            String actorId, movieId;
+            String res;
+
+            actorId = obj.getString("actorId");
+
+            res = dao.computeBaconNumber(actorId);
+
+            if (res.length() == 3) {
+                status = Integer.parseInt(res);
+                exchange.sendResponseHeaders(status, -1);
+            }
+            else {
+                status = 200;
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(status, res.length());
+                OutputStream os = exchange.getResponseBody();
+                os.write(res.getBytes());
+                os.close();
+            }
         } else {
             exchange.sendResponseHeaders(status, -1);
         }
