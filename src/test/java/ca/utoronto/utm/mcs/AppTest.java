@@ -13,11 +13,26 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 
 // TODO Please Write Your Tests For CI/CD In This Class. You will see
 // these tests pass/fail on github under github actions.
 public class AppTest {
+
+    public HttpResponse<String> sendPutReq(HttpClient client, String endPoint, String body) throws URISyntaxException, IOException, InterruptedException {
+        return client.send(HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/" + endPoint))
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build(), HttpResponse.BodyHandlers.ofString());
+    }
+
+    public HttpResponse<String> sendGetReq(HttpClient client, String endPoint, String body) throws URISyntaxException, IOException, InterruptedException {
+        return client.send(HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/" + endPoint))
+                .method("GET", HttpRequest.BodyPublishers.ofString(body))
+                .build(), HttpResponse.BodyHandlers.ofString());
+    }
 
     @Test
     public void exampleTest() {
@@ -27,16 +42,9 @@ public class AppTest {
     @Test
     public void addActorPass() throws IOException, URISyntaxException, InterruptedException {
 
-        // TODO: Ensure that there are no actors with this id
-
         HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = sendPutReq(client, "addActor", "{ \"name\": \"John Pass\", \"actorId\": \"actorpass\" }");
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addActor"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"John Pass\", \"actorId\": \"actorpass\" }"))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         System.out.println("addActorPass: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 200);
@@ -47,19 +55,9 @@ public class AppTest {
     public void addActorFail() throws JSONException, IOException, URISyntaxException, InterruptedException {
 
         HttpClient client = HttpClient.newHttpClient();
+        sendPutReq(client, "addActor", "{ \"name\": \"John Fail 1\", \"actorId\": \"actorfail\" }");
+        HttpResponse<String> response = sendPutReq(client,"addActor", "{ \"name\": \"John Fail 2\", \"actorId\": \"actorfail\" }");
 
-        HttpRequest request1 = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addActor"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"John Fail 1\", \"actorId\": \"actorfail\" }"))
-                .build();
-
-        HttpRequest request2 = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addActor"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"John Fail 2\", \"actorId\": \"actorfail\" }"))
-                .build();
-
-        client.send(request1, HttpResponse.BodyHandlers.ofString());
-        HttpResponse<String> response = client.send(request2, HttpResponse.BodyHandlers.ofString());
         System.out.println("addActorFail: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 400);
@@ -67,8 +65,6 @@ public class AppTest {
 
     @Test
     public void addMoviePass() throws IOException, URISyntaxException, InterruptedException {
-
-        // TODO: Ensure that there are no actors with this id
 
         HttpClient client = HttpClient.newHttpClient();
 
@@ -374,6 +370,66 @@ public class AppTest {
 
         HttpResponse<String> response = client.send(requestHasRelationship, HttpResponse.BodyHandlers.ofString());
         System.out.println("hasRelationshipFail: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        assertTrue(response.statusCode() == 404);
+    }
+
+    @Test
+    public void computeBaconNumberPass() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        sendPutReq(client, "addActor", "{ \"name\": \"Kevin Bacon\", \"actorId\": \"nm0000102\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Pass 1\", \"actorId\": \"acbnp1\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Pass 2\", \"actorId\": \"acbnp2\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Pass 3\", \"actorId\": \"acbnp3\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Pass 4\", \"actorId\": \"acbnp4\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie ComputeBaconNum Pass 1\", \"movieId\": \"mcbnp1\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie ComputeBaconNum Pass 2\", \"movieId\": \"mcbnp2\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie ComputeBaconNum Pass 3\", \"movieId\": \"mcbnp3\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie ComputeBaconNum Pass 4\", \"movieId\": \"mcbnp4\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbnp1\", \"movieId\": \"mcbnp1\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbnp2\", \"movieId\": \"mcbnp1\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbnp2\", \"movieId\": \"mcbnp2\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbnp3\", \"movieId\": \"mcbnp2\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbnp3\", \"movieId\": \"mcbnp3\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbnp4\", \"movieId\": \"mcbnp3\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbnp4\", \"movieId\": \"mcbnp4\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbnp1\", \"movieId\": \"mcbnp4\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"nm0000102\", \"movieId\": \"mcbnp3\" }");
+
+        HttpResponse<String> response = sendGetReq(client, "computeBaconNumber", "{ \"actorId\": \"acbnp1\" }");
+        System.out.println("computeBaconNumberPass: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+
+        if (obj == null || !obj.has("baconNumber"))
+            correctBody = false;
+        else if (obj.getInt("baconNumber") == 2)
+            correctBody = true;
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
+    @Test
+    public void computeBaconNumberFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        sendPutReq(client, "addActor", "{ \"name\": \"Kevin Bacon\", \"actorId\": \"nm0000102\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Fail\", \"actorId\": \"acbnf1\" }");
+
+        HttpResponse<String> response = sendGetReq(client, "computeBaconNumber", "{ \"actorId\": \"acbnf1\" }");
+        System.out.println("computeBaconNumberFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
         assertTrue(response.statusCode() == 404);
     }
