@@ -50,6 +50,7 @@ public class ReqHandler implements HttpHandler {
             case "/api/v1/getMovie" -> getMovie(exchange);
             case "/api/v1/hasRelationship" -> hasRelationship(exchange);
             case "/api/v1/computeBaconNumber" -> computeBaconNumber(exchange);
+            case "/api/v1/computeBaconPath" -> computeBaconPath(exchange);
             default -> {
                 System.out.println("ReqHandler: handleGet() Error");
                 exchange.sendResponseHeaders(500, -1);
@@ -297,12 +298,53 @@ public class ReqHandler implements HttpHandler {
 
         if (obj != null && obj.has("actorId")) {
 
-            String actorId, movieId;
+            String actorId;
             String res;
 
             actorId = obj.getString("actorId");
 
             res = dao.computeBaconNumber(actorId);
+
+            if (res.length() == 3) {
+                status = Integer.parseInt(res);
+                exchange.sendResponseHeaders(status, -1);
+            }
+            else {
+                status = 200;
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(status, res.length());
+                OutputStream os = exchange.getResponseBody();
+                os.write(res.getBytes());
+                os.close();
+            }
+        } else {
+            exchange.sendResponseHeaders(status, -1);
+        }
+    }
+
+    public void computeBaconPath(HttpExchange exchange) throws IOException, JSONException {
+
+        int status = 400;
+
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = null;
+
+        try {
+            obj = new JSONObject(body);
+        }
+        catch (JSONException e)
+        {
+            status = 500;
+        }
+
+        if (obj != null && obj.has("actorId")) {
+
+            String actorId;
+            String res;
+
+            actorId = obj.getString("actorId");
+
+            res = dao.computeBaconPath(actorId);
 
             if (res.length() == 3) {
                 status = Integer.parseInt(res);
