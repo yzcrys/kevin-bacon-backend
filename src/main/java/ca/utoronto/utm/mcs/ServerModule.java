@@ -10,6 +10,10 @@ import java.io.IOException;
 public class ServerModule {
     // TODO Complete This Module
 
+    /**
+     * This method provides the <code>HttpServer</code> object injected into <code>Server</code>
+     * @return Return the <code>Server</code> object
+     */
     @Provides
     public HttpServer provideServer(){
         try {
