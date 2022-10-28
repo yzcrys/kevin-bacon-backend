@@ -1,5 +1,6 @@
 package ca.utoronto.utm.mcs;
 
+import com.sun.net.httpserver.HttpExchange;
 import org.json.JSONObject;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
@@ -13,13 +14,26 @@ import javax.inject.Inject;
 public class Neo4jDAO {
     // TODO Complete This Class
 
+    /**
+     * This field is final, following the Neo4j documentation examples.
+     */
     private final Driver driver;
 
+    /**
+     * A Driver (org.neo4j.driver) object is injected into this constructor as stated in <code>A1Handout.pdf</code>.
+     * @param driver The driver injected
+     */
     @Inject
     public Neo4jDAO(Driver driver) {
         this.driver = driver;
     }
 
+    /**
+     * This method checks if the actor corresponding to the given actorId exists in the database.
+     * @param actorId The actorId corresponding to the actor being checked.
+     * @return Return true if the actor exist, false otherwise.
+     * @see Neo4jDAO#addActor(String, String) addActor(String) in NEO4jDAO for example usage
+     */
     public boolean actorExists(String actorId) {
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -31,6 +45,15 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This endpoint is to add an actor node into the database.
+     * If an actor with the same actorId already exists in the database, no node is added.
+     * @param name The name of the actor being added.
+     * @param actorId The actorId of the actor being added.
+     * @return Return 200 if the actor was successfully added, 400 if the request body is improperly formatted,
+     * missing required information, or an actor with the same actorId already exists, and 500 if save or add was unsuccessful (Java Exception Thrown).
+     * @see Neo4jDAO#actorExists(String)
+     */
     public int addActor(String name, String actorId) {
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -53,6 +76,12 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This method checks if the movie corresponding to the given movieId exists in the database.
+     * @param movieId The movieId corresponding to the movie being checked.
+     * @return Return true if the movie exist, false otherwise.
+     * @see Neo4jDAO#addMovie(String, String) addMovie(String) in NEO4jDAO for example usage
+     */
     public boolean movieExists(String movieId) {
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -64,6 +93,15 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This endpoint is to add a movie node into the database.
+     * If a movie with the same movieId already exists in the database, no node is added.
+     * @param name The name of the movie being added.
+     * @param movieId The movieId of the movie being added.
+     * @return Return 200 if the movie was successfully added, 400 if the request body is improperly formatted,
+     * missing required information, or a movie with the same movieId already exists, and 500 if save or add was unsuccessful (Java Exception Thrown).
+     * @see Neo4jDAO#movieExists(String)
+     */
     public int addMovie(String name, String movieId) {
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -86,6 +124,13 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This method checks if an <code>ACTED_IN</code> relationship between the given actor and movie exists in the database.
+     * @param actorId The actorId corresponding to the actor being checked.
+     * @param movieId The movieId corresponding to the movie being checked.
+     * @return Return true if the relationship exists, false otherwise.
+     * @see Neo4jDAO#addRelationship(String, String)  addRelationship(String) in NEO4jDAO for example usage
+     */
     public boolean relationshipExists(String actorId, String movieId) {
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -97,6 +142,18 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     *  This endpoint is to add an ACTED_IN relationship between an actor
+     * and a movie in the database.
+     * If an ACTED_IN relationship between the actor and movie already exists in the database, no relationship is added.
+     * If the actor or movie does not exist in the database, no relationship is added.
+     * @param actorId The actorId of the actor in question.
+     * @param movieId The movieId of the movie in question.
+     * @return Return 200 if the relationship was successfully added, 400 if the request body is improperly formatted,
+     * missing required information, or a relationship with the same relationshipId already exists,
+     * 404 if the actor or movie does not exist, and 500 if save or add was unsuccessful (Java Exception Thrown).
+     * @see Neo4jDAO#relationshipExists(String, String)
+     */
     public int addRelationship(String actorId, String movieId) {
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -124,6 +181,20 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This endpoint is to check if an actor exists in the database.
+     * If the actor does not exist in the database, or an internal server error occurs,
+     * a string containing response code is returned.
+     * Otherwise, a string containing the response body JSONObject is returned.
+     * <p>Response body string format example:</p>
+     * <p><code>
+     *     { "actorId": "nm1111891", "name": "John Doe", "movies": ["nm8911231", "nm1991341", "nm2005431"]}
+     * </code></p>
+     * @param actorId The actorId of the actor in question.
+     * @return Return a string containing the response body JSONObject if the relationship was successfully added,
+     * "404" if the actor or movie does not exist, and "500" if save or add was unsuccessful (Java Exception Thrown).
+     * @see ReqHandler#getActor(HttpExchange) getActor(HttpExchange) in ReqHandler for example usage
+     */
     public String getActor(String actorId) {
         String obj = "";
 
@@ -156,6 +227,20 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This endpoint is to check if a movie exists in the database.
+     * If the movie does not exist in the database, or an internal server error occurs,
+     * a string containing response code is returned.
+     * Otherwise, a string containing the response body JSONObject is returned.
+     * <p>Response body string format example:</p>
+     * <p><code>
+     *     { "movieId": "nm1111891", "name": "Groundhog Day", "actors": ["nm8911231", "nm1991341", "nm2005431"]}
+     * </code></p>
+     * @param movieId The movieId of the actor in question.
+     * @return Return a string containing the response body JSONObject if the query was successful,
+     * "404" if the movie does not exist, and "500" if save or add was unsuccessful (Java Exception Thrown).
+     * @see ReqHandler#getMovie(HttpExchange)  getMovie(HttpExchange) in ReqHandler for example usage
+     */
     public String getMovie(String movieId) {
         String obj = "";
 
@@ -188,6 +273,21 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This endpoint is to check if a relationship between an actor and a movie exists in the database.
+     * If the relationship does not exist in the database, or an internal server error occurs,
+     * a string containing response code is returned.
+     * Otherwise, a string containing the response body JSONObject is returned.
+     * <p>Response body string format example:</p>
+     * <p><code>
+     *     { "actorId": "nm1111891", "movieId": "nm234923", "hasRelationship": false }
+     * </code></p>
+     * @param actorId The actorId of the actor in question.
+     * @param movieId The movieId of the movie in question.
+     * @return Return a string containing the response body JSONObject if the query was successful,
+     * "404" if the actor or movie does not exist, and "500" if save or add was unsuccessful (Java Exception Thrown).
+     * @see ReqHandler#hasRelationship(HttpExchange)  hasRelationship(HttpExchange) in ReqHandler for example usage
+     */
     public String hasRelationship(String actorId, String movieId) {
         String obj = "";
 
@@ -224,6 +324,21 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This endpoint is to check the bacon number of an actor.
+     * If the path does not exist in the database, or an internal server error occurs,
+     * a string containing response code is returned.
+     * Otherwise, a string containing the response body JSONObject is returned.
+     * If the actor is Kevin Bacon, the baconNumber is 0.
+     * <p>Response body string format example:</p>
+     * <p><code>
+     *     { "baconNumber": 3 }
+     * </code></p>
+     * @param actorId The actorId of the actor in question.
+     * @return Return a string containing the response body JSONObject if the query was successful,
+     * "404" if the actor or a path to Kevin Bacon does not exist, and "500" if save or add was unsuccessful (Java Exception Thrown).
+     * @see ReqHandler#computeBaconNumber(HttpExchange) computeBaconNumber(HttpExchange) in ReqHandler for example usage
+     */
     public String computeBaconNumber(String actorId) {
         String kevinBaconId = "nm0000102";
         String obj = "";
@@ -265,6 +380,22 @@ public class Neo4jDAO {
         }
     }
 
+    /**
+     * This endpoint returns the shortest Bacon Path in order from the actor given to Kevin Bacon.
+     * If the actor or path does not exist in the database, or an internal server error occurs,
+     * a string containing response code is returned.
+     * Otherwise, a string containing the response body JSONObject is returned.
+     * If the actor is Kevin Bacon, the list of interchanging actors and movies is just Kevin Bacon's id.
+     * <p>Response body string format example:</p>
+     * <p><code>
+     *     { "baconPath": [ "nm1991271", "nm9112231", "nm9191136", "nm9894331", "nm0000102" ] }
+     * </code></p>
+     * @param actorId The actorId of the actor in question.
+     * @return Return a string containing the response body JSONObject of with a list of interchanging actors and movies beginning with the
+     * inputted actorId and ending with Kevin Bacon’s actorId if the query was successful,
+     * "404" if the actor or a path to Kevin Bacon does not exist, and "500" if save or add was unsuccessful (Java Exception Thrown).
+     * @see ReqHandler#computeBaconPath(HttpExchange)  computeBaconPath(HttpExchange) in ReqHandler for example usage
+     */
     public String computeBaconPath(String actorId) {
         String kevinBaconId = "nm0000102";
         String obj = "";

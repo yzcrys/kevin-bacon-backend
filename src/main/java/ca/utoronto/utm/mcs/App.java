@@ -5,7 +5,19 @@ import java.io.IOException;
 
 public class App
 {
+    /**
+     * Port number for server
+     */
     static int port = 8080;
+
+    /**
+     * This method is the entry point of this program where create the Http server context is created
+     * the server is started on port <code>port</code>.
+     * Note that only a single server context is created, as stated in <code>A1Handout.pdf</code>.
+     * @param args
+     * @throws IOException
+     * @see Server
+     */
     public static void main(String[] args) throws IOException
     {
         // TODO Create Your Server Context Here, There Should Only Be One Context

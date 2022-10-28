@@ -12,19 +12,39 @@ public class Server {
 
     private HttpServer server;
 
+    /**
+     * A HttpServer object is injected into this constructor as stated in <code>A1Handout.pdf</code>.
+     * @param server The Server object injected
+     */
     @Inject
     public Server(HttpServer server) {
         this.server = server;
     }
 
+    /**
+     * This method starts the given server.
+     * @see App#main(String[]) <code>main(String[])</code> in <code>App</code> for example usage
+     */
     public void start() {
         this.server.start();
     }
 
+    /**
+     * This method binds the server to the hostname <code>0.0.0.0</code> and the given port.
+     * @param port The port on to start the server on
+     * @throws IOException
+     * @see App#main(String[]) <code>main(String[])</code> in <code>App</code> for example usage
+     */
     public void bind(int port) throws IOException {
         this.server.bind(new InetSocketAddress("0.0.0.0", port), 0);
     }
 
+    /**
+     * This method creates a server context for the given uri and handler
+     * @param uri The uri used to create the server context.
+     * @param handler The handler used to create the server context.
+     * @see App#main(String[]) <code>main(String[])</code> in <code>App</code> for example usage
+     */
     public void setContext(String uri, ReqHandler handler) {
         server.createContext(uri, handler);
     }

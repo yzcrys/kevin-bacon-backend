@@ -11,10 +11,13 @@ import org.neo4j.driver.GraphDatabase;
 public class ReqHandlerModule {
     // TODO Complete This Module
 
+    /**
+     * This method provides the Neo4jDAO object.
+     * @return Return the Neo4jDAO object
+     */
     @Provides
     public Neo4jDAO provideNeo4jDAO()
     {
-
         String username = "neo4j";
         String password = "123456";
         Dotenv dotenv = Dotenv.load();
