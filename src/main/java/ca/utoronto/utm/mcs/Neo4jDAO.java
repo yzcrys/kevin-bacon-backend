@@ -24,7 +24,7 @@ public class Neo4jDAO {
     public boolean actorExists(String actorId) {
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
-            String query = "MATCH (n: actor) WHERE n.actorId = '%s' RETURN n".formatted(actorId);
+            String query = "MATCH (n: actor{actorId: \"%s\"}) RETURN n".formatted(actorId);
             Result res = tx.run(query);
             Boolean exists = res.hasNext();
             tx.commit();
@@ -57,7 +57,7 @@ public class Neo4jDAO {
     public boolean movieExists(String movieId) {
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
-            String query = "MATCH (n: movie) WHERE n.movieId = '%s' RETURN n".formatted(movieId);
+            String query = "MATCH (n: movie{movieId: \"%s\"}) RETURN n".formatted(movieId);
             Result res = tx.run(query);
             Boolean exists = res.hasNext();
             tx.commit();
@@ -126,7 +126,7 @@ public class Neo4jDAO {
     }
 
     public String getActor(String actorId) {
-        String actor = "null";
+        String obj = "";
 
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -144,11 +144,11 @@ public class Neo4jDAO {
 
                 if (res.hasNext()) {
                     org.neo4j.driver.Record record = res.next();
-                    actor= record.values().get(0).get(0).toString();
+                    obj = record.values().get(0).get(0).toString();
                 }
 
                 tx.commit();
-                return actor;
+                return obj;
             }
         }
         catch(Exception e) {
@@ -158,7 +158,7 @@ public class Neo4jDAO {
     }
 
     public String getMovie(String movieId) {
-        String movie = "null";
+        String obj = "";
 
         try(Session session = driver.session()){
             Transaction tx = session.beginTransaction();
@@ -176,11 +176,46 @@ public class Neo4jDAO {
 
                 if (res.hasNext()) {
                     org.neo4j.driver.Record record = res.next();
-                    movie = record.values().get(0).get(0).toString();
+                    obj = record.values().get(0).get(0).toString();
                 }
 
                 tx.commit();
-                return movie;
+                return obj;
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            return "500";
+        }
+    }
+
+    public String hasRelationship(String actorId, String movieId) {
+        String obj = "null";
+
+        try(Session session = driver.session()){
+            Transaction tx = session.beginTransaction();
+
+            if (!actorExists(actorId) || !movieExists(movieId)) {
+                System.out.println("Neo4jDAO: hasRelationship():  " + actorId + " or " + movieId + "does not exist");
+                return "404";
+            }
+            else {
+                System.out.println("Neo4jDAO: hasRelationship(): Checking for relationship between " + actorId + " and " + movieId);
+                String query = ("OPTIONAL MATCH (n: actor{actorId: \"%1$s\"})-[r:ACTED_IN]->(m: movie{movieId: \"%2$s\"})\n" +
+                        "WITH COUNT(r) > 0 AS hasRel\n" +
+                        "MATCH (n: actor{actorId: \"%1$s\"}), (m: movie{movieId:  \"%2$s\"})\n" +
+                        "RETURN collect({ actorId: n.actorId, movieId: m.movieId, hasRelationship: hasRel}) AS obj").formatted(actorId, movieId);
+                Result res = tx.run(query);
+
+                if (res.hasNext()) {
+                    org.neo4j.driver.Record record = res.next();
+                    obj = record.values().get(0).get(0).toString();
+                }
+
+                obj = obj.replace("TRUE", "true").replace("FALSE", "false");
+
+                tx.commit();
+                return obj;
             }
         }
         catch(Exception e) {

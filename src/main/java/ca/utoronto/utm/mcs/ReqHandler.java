@@ -49,6 +49,8 @@ public class ReqHandler implements HttpHandler {
             getActor(exchange);
         } else if (endPoint.equals("/api/v1/getMovie")) {
             getMovie(exchange);
+        } else if (endPoint.equals("/api/v1/hasRelationship")) {
+            hasRelationship(exchange);
         } else {
             System.out.println("ReqHandler: handleGet() Error");
             exchange.sendResponseHeaders(500, -1);
@@ -228,6 +230,45 @@ public class ReqHandler implements HttpHandler {
             exchange.sendResponseHeaders(status, movie.length());
             OutputStream os = exchange.getResponseBody();
             os.write(movie.getBytes());
+            os.close();
+        } else {
+            exchange.sendResponseHeaders(status, -1);
+        }
+    }
+
+    public void hasRelationship(HttpExchange exchange) throws IOException, JSONException {
+
+        int status = 400;
+
+        String body = Utils.convert(exchange.getRequestBody());
+        JSONObject obj = null;
+
+        try {
+            obj = new JSONObject(body);
+        }
+        catch (JSONException e)
+        {
+            status = 500;
+        }
+
+        if (obj != null && obj.has("actorId") && obj.has("movieId")) {
+
+            String actorId, movieId;
+            String res;
+
+            actorId = obj.getString("actorId");
+            movieId = obj.getString("movieId");
+            res = dao.hasRelationship(actorId, movieId);
+
+            if (res.length() == 3)
+                status = Integer.parseInt(res);
+            else
+                status = 200;
+
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(status, res.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(res.getBytes());
             os.close();
         } else {
             exchange.sendResponseHeaders(status, -1);
