@@ -303,4 +303,78 @@ public class AppTest {
 
         assertTrue(response.statusCode() == 404);
     }
+
+    @Test
+    public void hasRelationshipPass() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requestAddActor = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addActor"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor HasRelationship Pass\", \"actorId\": \"ahrp\" }"))
+                .build();
+
+        HttpRequest requestAddMovie = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Movie HasRelationship Pass\", \"movieId\": \"mhrp\" }"))
+                .build();
+
+        HttpRequest requestAddRelationship = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addRelationship"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"ahrp\", \"movieId\": \"mhrp\" }"))
+                .build();
+
+        HttpRequest requestHasRelationship = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/hasRelationship"))
+                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"ahrp\", \"movieId\": \"mhrp\" }"))
+                .build();
+
+        client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddMovie, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
+
+        HttpResponse<String> response = client.send(requestHasRelationship, HttpResponse.BodyHandlers.ofString());
+        System.out.println("hasRelationshipPass: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+
+        if (obj == null || !obj.has("actorId") | !obj.has("movieId") || !obj.has("hasRelationship"))
+            correctBody = false;
+        else if (obj.getString("actorId").equals("ahrp") && obj.getString("movieId").equals("mhrp") && obj.getBoolean("hasRelationship") == true)
+            correctBody = true;
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
+    @Test
+    public void hasRelationshipFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requestAddActor = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addActor"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor HasRelationship Pass\", \"actorId\": \"ahrf\" }"))
+                .build();
+
+        HttpRequest requestHasRelationship = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/hasRelationship"))
+                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"ahrf\", \"movieId\": \"mhrf\" }"))
+                .build();
+
+        client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
+
+        HttpResponse<String> response = client.send(requestHasRelationship, HttpResponse.BodyHandlers.ofString());
+        System.out.println("hasRelationshipFail: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        assertTrue(response.statusCode() == 404);
+    }
 }
