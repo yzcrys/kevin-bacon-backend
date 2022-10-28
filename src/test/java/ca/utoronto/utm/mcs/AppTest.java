@@ -69,13 +69,8 @@ public class AppTest {
     public void addMoviePass() throws IOException, URISyntaxException, InterruptedException {
 
         HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = sendPutReq(client, "addMovie", "{ \"name\": \"Parasite Pass\", \"movieId\": \"moviepass\" }");
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Parasite Pass\", \"movieId\": \"moviepass\" }"))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         System.out.println("addActorPass: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 200);
@@ -86,19 +81,9 @@ public class AppTest {
     public void addMovieFail() throws IOException, URISyntaxException, InterruptedException {
 
         HttpClient client = HttpClient.newHttpClient();
+        sendPutReq(client, "addMovie", "{ \"name\": \"Parasite Fail 1\", \"movieId\": \"moviefail\" }");
 
-        HttpRequest request1 = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Parasite Fail 1\", \"movieId\": \"moviefail\" }"))
-                .build();
-
-        HttpRequest request2 = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Parasite Fail 2\", \"movieId\": \"moviefail\" }"))
-                .build();
-
-        client.send(request1, HttpResponse.BodyHandlers.ofString());
-        HttpResponse<String> response = client.send(request2, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = sendPutReq(client, "addMovie", "{ \"name\": \"Parasite Fail 2\", \"movieId\": \"moviefail\" }");
         System.out.println("addMovieFail: The response status is " + response.statusCode());
 
         assertTrue(response.statusCode() == 400);
@@ -291,12 +276,7 @@ public class AppTest {
 
         HttpClient client = HttpClient.newHttpClient();
 
-        HttpRequest requestGetMovie = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/getMovie"))
-                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"movieId\": \"mmf\" }"))
-                .build();
-
-        HttpResponse<String> response = client.send(requestGetMovie, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = sendGetReq(client, "getMovie", "{ \"movieId\": \"mmf\" }");
         System.out.println("getMovieFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
         assertTrue(response.statusCode() == 404);
@@ -306,32 +286,11 @@ public class AppTest {
     public void hasRelationshipPass() throws IOException, URISyntaxException, InterruptedException, JSONException {
 
         HttpClient client = HttpClient.newHttpClient();
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor HasRelationship Pass\", \"actorId\": \"ahrp\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie HasRelationship Pass\", \"movieId\": \"mhrp\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"ahrp\", \"movieId\": \"mhrp\" }");
 
-        HttpRequest requestAddActor = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addActor"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor HasRelationship Pass\", \"actorId\": \"ahrp\" }"))
-                .build();
-
-        HttpRequest requestAddMovie = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Movie HasRelationship Pass\", \"movieId\": \"mhrp\" }"))
-                .build();
-
-        HttpRequest requestAddRelationship = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addRelationship"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"ahrp\", \"movieId\": \"mhrp\" }"))
-                .build();
-
-        HttpRequest requestHasRelationship = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/hasRelationship"))
-                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"ahrp\", \"movieId\": \"mhrp\" }"))
-                .build();
-
-        client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
-        client.send(requestAddMovie, HttpResponse.BodyHandlers.ofString());
-        client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
-
-        HttpResponse<String> response = client.send(requestHasRelationship, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = sendGetReq(client, "hasRelationship", "{ \"actorId\": \"ahrp\", \"movieId\": \"mhrp\" }");
         System.out.println("hasRelationshipPass: The response status is " + response.statusCode() + " with response body " + response.body());
 
         JSONObject obj = null;
@@ -357,20 +316,9 @@ public class AppTest {
     public void hasRelationshipFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
 
         HttpClient client = HttpClient.newHttpClient();
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor HasRelationship Pass\", \"actorId\": \"ahrf\" }");
 
-        HttpRequest requestAddActor = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/addActor"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor HasRelationship Pass\", \"actorId\": \"ahrf\" }"))
-                .build();
-
-        HttpRequest requestHasRelationship = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/v1/hasRelationship"))
-                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"ahrf\", \"movieId\": \"mhrf\" }"))
-                .build();
-
-        client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
-
-        HttpResponse<String> response = client.send(requestHasRelationship, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = sendGetReq(client, "hasRelationship", "{ \"actorId\": \"ahrf\", \"movieId\": \"mhrf\" }");
         System.out.println("hasRelationshipFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
         assertTrue(response.statusCode() == 404);
