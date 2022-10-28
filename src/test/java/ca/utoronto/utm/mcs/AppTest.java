@@ -177,22 +177,22 @@ public class AppTest {
 
         HttpRequest requestAddActor = HttpRequest.newBuilder()
                 .uri(new URI("http://localhost:8080/api/v1/addActor"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor GetActor Pass\", \"actorId\": \"agp\" }"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor GetActor Pass\", \"actorId\": \"aap\" }"))
                 .build();
 
         HttpRequest requestAddMovie = HttpRequest.newBuilder()
                 .uri(new URI("http://localhost:8080/api/v1/addMovie"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Movie GetActor Pass\", \"movieId\": \"mgp\" }"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Movie GetActor Pass\", \"movieId\": \"map\" }"))
                 .build();
 
         HttpRequest requestAddRelationship = HttpRequest.newBuilder()
                 .uri(new URI("http://localhost:8080/api/v1/addRelationship"))
-                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"agp\", \"movieId\": \"mgp\" }"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"aap\", \"movieId\": \"map\" }"))
                 .build();
 
         HttpRequest requestGetActor = HttpRequest.newBuilder()
                 .uri(new URI("http://localhost:8080/api/v1/getActor"))
-                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"agp\" }"))
+                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"aap\" }"))
                 .build();
 
         client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
@@ -215,7 +215,7 @@ public class AppTest {
 
         if (obj == null || !obj.has("actorId") | !obj.has("name") || !obj.has("movies"))
             correctBody = false;
-        else if (obj.getString("actorId").equals("agp") && obj.getString("name").equals("Actor GetActor Pass") && obj.getJSONArray("movies").toString().equals("[\"mgp\"]"))
+        else if (obj.getString("actorId").equals("aap") && obj.getString("name").equals("Actor GetActor Pass") && obj.getJSONArray("movies").toString().equals("[\"map\"]"))
             correctBody = true;
 
         assertTrue(response.statusCode() == 200 && correctBody);
@@ -228,11 +228,78 @@ public class AppTest {
 
         HttpRequest requestGetActor = HttpRequest.newBuilder()
                 .uri(new URI("http://localhost:8080/api/v1/getActor"))
-                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"agp\" }"))
+                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"aaf\" }"))
                 .build();
 
         HttpResponse<String> response = client.send(requestGetActor, HttpResponse.BodyHandlers.ofString());
-        System.out.println("getActorPass: The response status is " + response.statusCode() + " with response body " + response.body());
+        System.out.println("getActorFail: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        assertTrue(response.statusCode() == 404);
+    }
+
+    @Test
+    public void getMoviePass() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requestAddActor = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addActor"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Actor GetMovie Pass\", \"actorId\": \"amp\" }"))
+                .build();
+
+        HttpRequest requestAddMovie = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addMovie"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"name\": \"Movie GetMovie Pass\", \"movieId\": \"mmp\" }"))
+                .build();
+
+        HttpRequest requestAddRelationship = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/addRelationship"))
+                .PUT(HttpRequest.BodyPublishers.ofString("{ \"actorId\": \"amp\", \"movieId\": \"mmp\" }"))
+                .build();
+
+        HttpRequest requestGetMovie = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/getMovie"))
+                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"movieId\": \"mmp\" }"))
+                .build();
+
+        client.send(requestAddActor, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddMovie, HttpResponse.BodyHandlers.ofString());
+        client.send(requestAddRelationship, HttpResponse.BodyHandlers.ofString());
+
+        HttpResponse<String> response = client.send(requestGetMovie, HttpResponse.BodyHandlers.ofString());
+        System.out.println("getMoviePass: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+
+        if (obj == null || !obj.has("movieId") | !obj.has("name") || !obj.has("actors"))
+            correctBody = false;
+        else if (obj.getString("movieId").equals("mmp") && obj.getString("name").equals("Movie GetMovie Pass") && obj.getJSONArray("actors").toString().equals("[\"amp\"]"))
+            correctBody = true;
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
+    @Test
+    public void getMovieFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requestGetMovie = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/v1/getMovie"))
+                .method("GET", HttpRequest.BodyPublishers.ofString("{ \"movieId\": \"mmf\" }"))
+                .build();
+
+        HttpResponse<String> response = client.send(requestGetMovie, HttpResponse.BodyHandlers.ofString());
+        System.out.println("getMovieFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
         assertTrue(response.statusCode() == 404);
     }
