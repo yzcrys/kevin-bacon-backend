@@ -7,13 +7,15 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 // TODO Please Write Your Tests For CI/CD In This Class. You will see
@@ -430,6 +432,68 @@ public class AppTest {
 
         HttpResponse<String> response = sendGetReq(client, "computeBaconNumber", "{ \"actorId\": \"acbnf1\" }");
         System.out.println("computeBaconNumberFail: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        assertTrue(response.statusCode() == 404);
+    }
+
+    @Test
+    public void computeBaconPathPass() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        sendPutReq(client, "addActor", "{ \"name\": \"Kevin Bacon\", \"actorId\": \"nm0000102\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Pass 1\", \"actorId\": \"acbpp1\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Pass 2\", \"actorId\": \"acbpp2\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Pass 3\", \"actorId\": \"acbpp3\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Pass 4\", \"actorId\": \"acbpp4\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie ComputeBaconNum Pass 1\", \"movieId\": \"mcbpp1\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie ComputeBaconNum Pass 2\", \"movieId\": \"mcbpp2\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie ComputeBaconNum Pass 3\", \"movieId\": \"mcbpp3\" }");
+        sendPutReq(client, "addMovie", "{ \"name\": \"Movie ComputeBaconNum Pass 4\", \"movieId\": \"mcbpp4\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbpp1\", \"movieId\": \"mcbpp1\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbpp2\", \"movieId\": \"mcbpp1\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbpp2\", \"movieId\": \"mcbpp2\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbpp3\", \"movieId\": \"mcbpp2\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbpp3\", \"movieId\": \"mcbpp3\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbpp4\", \"movieId\": \"mcbpp3\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbpp4\", \"movieId\": \"mcbpp4\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"acbpp1\", \"movieId\": \"mcbpp4\" }");
+        sendPutReq(client, "addRelationship", "{ \"actorId\": \"nm0000102\", \"movieId\": \"mcbpp3\" }");
+
+        HttpResponse<String> response = sendGetReq(client, "computeBaconPath", "{ \"actorId\": \"acbpp1\" }");
+        System.out.println("computeBaconPathPass: The response status is " + response.statusCode() + " with response body " + response.body());
+
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(response.body());
+        }
+        catch (JSONException e)
+        {
+            assertTrue(false);
+        }
+
+        boolean correctBody = false;
+        ArrayList<String> correctPath = new ArrayList<String>();
+        Collections.addAll(correctPath, "acbpp1", "mcbpp1", "acbpp2", "mcbpp2", "nm0000102");
+
+        if (obj == null || !obj.has("baconPath"))
+            correctBody = false;
+        else if (obj.get("baconPath").toString().equals("['acbpp1', 'mcbpp4', 'acbpp4', 'mcbpp3', 'nm0000102']}"));
+            correctBody = true;
+
+        assertTrue(response.statusCode() == 200 && correctBody);
+    }
+
+    @Test
+    public void computeBaconPathFail() throws IOException, URISyntaxException, InterruptedException, JSONException {
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        sendPutReq(client, "addActor", "{ \"name\": \"Kevin Bacon\", \"actorId\": \"nm0000102\" }");
+        sendPutReq(client, "addActor", "{ \"name\": \"Actor ComputeBaconNum Fail\", \"actorId\": \"acbpf1\" }");
+
+        HttpResponse<String> response = sendGetReq(client, "computeBaconNumber", "{ \"actorId\": \"acbpf1\" }");
+        System.out.println("computeBaconPathFail: The response status is " + response.statusCode() + " with response body " + response.body());
 
         assertTrue(response.statusCode() == 404);
     }
