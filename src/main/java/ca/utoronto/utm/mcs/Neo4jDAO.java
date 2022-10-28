@@ -156,4 +156,36 @@ public class Neo4jDAO {
             return "500";
         }
     }
+
+    public String getMovie(String movieId) {
+        String movie = "null";
+
+        try(Session session = driver.session()){
+            Transaction tx = session.beginTransaction();
+
+            if (!movieExists(movieId)) {
+                System.out.println("Neo4jDAO: getMovie():  " + movieId + "does not exist");
+                return "404";
+            }
+            else {
+                System.out.println("Neo4jDAO: getActor(): Getting movie with id " + movieId);
+                String query = ("MATCH (n:movie {movieId: '%s'})" +
+                        " RETURN collect({movieId: n.movieId, name: n.name, actors: [(m:actor)-->(n) | m.actorId]}) AS obj").formatted(movieId);
+
+                Result res = tx.run(query);
+
+                if (res.hasNext()) {
+                    org.neo4j.driver.Record record = res.next();
+                    movie = record.values().get(0).get(0).toString();
+                }
+
+                tx.commit();
+                return movie;
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            return "500";
+        }
+    }
 }
